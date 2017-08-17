@@ -1,4 +1,0 @@
-message config_values {
-	required int32 led_brightness = 1;
-}
-

@@ -1,0 +1,41 @@
+
+syntax = "proto2";
+
+message config_values {
+
+	required bool targetPowerState = 1;
+	
+	enum TargetControlPolicy { //Config mode representation
+		
+		AUTO_LUX = 0;
+		AUTO_TIMER = 1;
+		MANUAL = 2;
+
+	}
+	required TargetControlPolicy targetControlPolicy = 3;
+	
+
+	message targetManualControlParams{
+
+		optional uint32 targetBrightnessLevel = 2;
+	
+	}
+
+
+	message targetAutoTimerParams{
+
+		optional uint64 targetOnTime = 4;
+		optional uint64 targetOffTime = 5;
+	
+
+	}
+	
+	message targetAutoLuxParams{
+
+		optional uint32 targetOnLux = 6;
+		optional uint32 targetOffLux = 7;
+
+	}
+	
+}
+
