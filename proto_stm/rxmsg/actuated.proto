@@ -1,23 +1,33 @@
 
 syntax = "proto2";
 
-message config_values {
 
-	required bool targetPowerState = 1;
-	
-	enum TargetControlPolicy { //Config mode representation
+
+	message targetPowerStateParams{
+
+		required bool targetPowerState = 2;
+		
+	}
+
+
+
+	enum _controlPolicy { //Config mode representation
 		
 		AUTO_LUX = 0;
 		AUTO_TIMER = 1;
 		MANUAL = 2;
 
 	}
-	required TargetControlPolicy targetControlPolicy = 3;
-	
+
+	message targetControlPolicy{
+
+		required _controlPolicy controlPolicy = 2;
+		
+	}
 
 	message targetManualControlParams{
 
-		optional uint32 targetBrightnessLevel = 2;
+		optional uint32 targetBrightnessLevel = 3;
 	
 	}
 
@@ -37,5 +47,16 @@ message config_values {
 
 	}
 	
-}
+
+
+	message targetConfigurations{
+
+		required targetPowerStateParams  PowerState = 1;
+		required targetControlPolicy ControlPolicy = 2;
+		optional targetAutoTimerParams AutoTimerParams = 3;
+		optional targetAutoLuxParams AutoLuxParams = 4;
+	
+	}	
+
+
 
