@@ -153,12 +153,23 @@ static TimerEvent_t SlaveHeartBeatTimer;
 /*!
  * Timer to handle the state of Led Schedule On
  */
-static TimerEvent_t ScheduleOnTimer; //Renamed ScheduleOnTimer to ScheduleOnTimer
+static TimerEvent_t ScheduleOnTimer;
 
 /*!
  * Timer to handle the state of Led Schedule Off
  */
 static TimerEvent_t ScheduleOffTimer;
+
+/*!
+ * Time elapsed since first register
+ */
+static TimerTime_t timeAlive;
+
+
+uint32_t oneDay = 8640000;
+
+
+
 
 /*!
  * Indicates if a new packet can be sent
@@ -207,43 +218,76 @@ uint16_t len = 0;
 
 const char delim[2] = ",";
 
+
+uint8_t sensor_buffer[20];
 uint8_t temperature_buffer[4];
 uint8_t lux_buffer[10];
 uint8_t power_buffer[10];
 
 uint8_t masterControl = 0;
+uint8_t brightness_ascii[2];
+uint8_t command[20];
+
+
+
+typedef struct _sensorValues{
+
+bool slaveReachable;
 uint32_t temperature;
 uint32_t current;
 uint32_t voltage;
 uint32_t ambient_lux;
 uint32_t led_lux;
 uint32_t power;
-uint8_t brightness_[2];
-uint8_t command[2];
+uint32_t LuxOnThreshold;
+uint32_t LuxOffThreshold;
+
+}SensorValues;
+SensorValues sensorValues;
 
 
-
-uint32_t luxOn_threshold;
-uint32_t luxOff_threshold;
-
-uint64_t ledOnTime = 0;
-uint64_t ledOffTime = 0;
-
-uint32_t brightness = 0;
+static enum LedConfigMode{
+	AUTO_LUX,
+	AUTO_TIMER,
+	MANUAL,
+}ledConfigMode;
 
 
-bool MEASURE_SENSORS = false;
+typedef struct _autoLuxParameters{
+	uint32_t luxOn_threshold;
+	uint32_t luxOff_threshold;
+	bool isAutoLuxConfigured;
+}AutoLuxParameters;
+
+
+typedef struct _autoTimerParameters{
+	uint64_t ledOnTime;
+	uint64_t ledOffTime;
+	bool isAutoTimerConfigured;
+}AutoTimerParameters;
+
+
+typedef struct _manualParameters{
+	uint32_t brightness;
+	bool isManualConfigured;
+}ManualControlParameters;
+
+AutoLuxParameters autoLuxParams;
+AutoTimerParameters autoTimerParams;
+ManualControlParameters manualControlParams;
+
+bool MEASURE_SENSORS = true;
+
+
 
 sensor_values sensed = sensor_values_init_zero;
-
-config_values config = targetConfigurations_init_zero;
-
-/* Create a stream that reads from the buffer. */
+targetConfigurations config = targetConfigurations_init_zero;
 
 uint8_t status = 0,
 message_length = 0;
 
 
+uint32_t heartBeatInterval = 900000; //15mins
 
 
 
@@ -296,64 +340,70 @@ static void PrepareTxFrame(uint8_t port) {
 	case 3: {
 
 		uint16_t vdd = 0;
+		uint32_t power = 0;
+		uint8_t *temp;
 		// Read the current voltage level
 		BoardGetBatteryLevel(); // Updates the value returned by BoardGetBatteryVoltage( ) function.
 		vdd = BoardGetBatteryVoltage();
 
 		if (MEASURE_SENSORS == true) {
 
-			command[0] = 't';
-			UartPutBuffer(&Uart1, command, 2);
+			command[1] = 's';
+			command[2] = '\n';
+			UartPutBuffer(&Uart1, command, 3);
 			HAL_Delay(100);
 			if (flag == 1) {
 				flag = 0;
-				UartGetBuffer(&Uart1, temperature_buffer, 4, &msgLen);
-				temperature = atoi(temperature_buffer);
-				temperature = (temperature * 5 * 100) / (1024 * 4.3);
-				FifoFlush(&Uart1.FifoRx);
-				FifoFlush(&Uart1.FifoTx);
+				if(UartGetBuffer(&Uart1, sensor_buffer, 20, &msgLen) == 0){
+
+					FifoFlush(&Uart1.FifoRx);
+					FifoFlush(&Uart1.FifoTx);
+
+
+					temp = strtok (sensor_buffer,",");
+
+					sensorValues.temperature = atoi(temp);
+					temp = strtok (NULL, ",");
+					sensorValues.led_lux = atoi(temp);
+					temp = strtok (NULL, ",");
+					sensorValues.ambient_lux = atoi(temp);
+					temp = strtok (NULL, ",");
+					sensorValues.voltage = atoi(temp);
+					temp = strtok (NULL, ",");
+					sensorValues.current = atoi(temp);
+					temp = strtok (NULL, ",");
+					sensorValues.LuxOffThreshold = atoi(temp);
+					temp = strtok (NULL, ",");
+					sensorValues.LuxOnThreshold = atoi(temp);
+					temp = strtok (NULL, ",");
+
+					sensorValues.temperature = (sensorValues.temperature * 5 * 100) / (1024 * 4.3);
+					sensorValues.power = sensorValues.current * 5 / 1024 * (3.9 + 1.5) / 1.5 * sensorValues.voltage * 5 / 1024 / 16 * 10;
+
+					timeAlive = TimerGetValue();
+
+					sensor_values sensed = { timeAlive, true, sensorValues.temperature, true, sensorValues.power, true, sensorValues.led_lux,
+								true, sensorValues.ambient_lux, true, vdd , true, sensorValues.slaveReachable};
+
+					pb_ostream_t stream = pb_ostream_from_buffer(tx_msg, sizeof(tx_msg));
+
+					pb_encode(&stream, sensor_values_fields, &sensed);
+					message_length = stream.bytes_written;
+
+					strncpy(AppData, tx_msg, message_length);
+					AppDataSize = message_length;
+
+
+				}
+
+				else{
+
+
+
+				}
+
+
 			}
-			HAL_Delay(100);
-
-			command[0] = 'p';
-			UartPutBuffer(&Uart1, command, 2);
-			HAL_Delay(100);
-			if (flag == 1) {
-				flag = 0;
-				UartGetBuffer(&Uart1, power_buffer, 10, &msgLen);
-				current = atoi(power_buffer);
-				voltage = atoi(power_buffer + 5); // {Current, 0x00,',', voltage}
-				power = current * 5 / 1024 * (3.9 + 1.5) / 1.5 * voltage * 5
-						/ 1024 / 16 * 10;
-				FifoFlush(&Uart1.FifoRx);
-				FifoFlush(&Uart1.FifoTx);
-			}
-			HAL_Delay(200);
-
-			command[0] = 'l';
-			UartPutBuffer(&Uart1, command, 2);
-			HAL_Delay(100);
-			if (flag == 1) {
-				flag = 0;
-				UartGetBuffer(&Uart1, lux_buffer, 10, &msgLen);
-				led_lux = atoi(lux_buffer);
-				ambient_lux = atoi(lux_buffer + 5);
-
-				FifoFlush(&Uart1.FifoRx);
-				FifoFlush(&Uart1.FifoTx);
-			}
-			HAL_Delay(100);
-
-			sensor_values sensed = { temperature, power, led_lux, ambient_lux,
-					vdd };
-			pb_ostream_t stream = pb_ostream_from_buffer(tx_msg,
-					sizeof(tx_msg));
-			pb_encode(&stream, sensor_values_fields, &sensed);
-			message_length = stream.bytes_written;
-
-			strncpy(AppData, tx_msg, message_length);
-			AppDataSize = message_length;
-
 		}
 
 	}
@@ -383,6 +433,7 @@ static void PrepareTxFrame(uint8_t port) {
 		break;
 	}
 }
+
 
 /*!
  * \brief   Prepares the payload of the frame
@@ -448,19 +499,70 @@ static void OnTxNextPacketTimerEvent(void) {
  * \brief Function executed on Led 4 Timeout event
  */
 static void OnSlaveHeartBeatTimerEvent(void) {
+
+	command[0] = '1';
+	command[1] = 's';
+	command[2] = '\n';
+
+	uint8_t skippedBeats = 0;
+	bool receivedResponse = false;
+
+	for(skippedBeats = 0; (skippedBeats < 3) && (receivedResponse!=true) ; skippedBeats++ )
+	{
+		UartPutBuffer(&Uart1, command, 2);
+		HAL_Delay(100);
+		if (flag == 1) {
+			flag = 0;
+			if(UartGetBuffer(&Uart1, sensor_buffer, 4, &msgLen)){
+				receivedResponse = true;
+				FifoFlush(&Uart1.FifoRx);
+				FifoFlush(&Uart1.FifoTx);
+			}
+		}
+		HAL_Delay(100);
+	}
+
+	if(receivedResponse == false){
+		sensorValues.slaveReachable = false;
+	}
+
+	else{
+		sensorValues.slaveReachable = true;
+	}
+
 	TimerStop(&SlaveHeartBeatTimer);
-	// Switch LED 4 OFF
-	GpioWrite(&Led4, 0);
+	TimerStart(&SlaveHeartBeatTimer);
 }
 
-/*!
- * \brief Function executed on Led 2 Timeout event
- */
 static void OnScheduleOnTimerEvent(void) {
+
+	brightness_ascii[0] = 'a';
+	brightness_ascii[1] = '\n';
+	UartPutBuffer(&Uart1, brightness_ascii, 2);
 	TimerStop(&ScheduleOnTimer);
-	// Switch LED 2 OFF
-	GpioWrite(&Led2, 0);
+	TimerSetValue(&ScheduleOnTimer, oneDay); // Schedule next on for same time next day
+	TimerStart(&ScheduleOnTimer);
 }
+
+
+static void OnScheduleOffTimerEvent(void) {
+
+	brightness_ascii[0] = '0';
+	brightness_ascii[1] = '\n';
+	UartPutBuffer(&Uart1, brightness_ascii, 2);
+	TimerStop(&ScheduleOffTimer);
+	TimerSetValue(&ScheduleOffTimer, oneDay); // Schedule next on for same time next day
+	TimerStart(&ScheduleOnTimer);
+
+}
+
+
+
+
+
+
+
+
 
 /*!
  * \brief   MCPS-Confirm event function
@@ -567,53 +669,59 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 
 
 
-				if (configMode.controlPolicy == _controlPolicy_AUTO_LUX) {
+				if (configMode.controlPolicy == ctrlPolicy_AUTO_LUX) {
 
-
+						ledConfigMode = AUTO_LUX;
 						targetAutoLuxParams luxParams = { };
 						status = decode_actuation_message_contents(&istream, targetAutoLuxParams_fields, &luxParams);
-						luxOn_threshold = luxParams.targetOnLux;
-						luxOff_threshold = luxParams.targetOffLux;
+						autoLuxParams.luxOn_threshold = luxParams.targetOnLux;
+						autoLuxParams.luxOff_threshold = luxParams.targetOffLux;
+
 
 				}
 
 
 
-				if (configMode.controlPolicy == _controlPolicy_AUTO_TIMER) {
+				if (configMode.controlPolicy == ctrlPolicy_AUTO_TIMER) {
 
-
+					ledConfigMode = AUTO_TIMER;
 					targetAutoTimerParams timerParams = { };
 					status = decode_actuation_message_contents(&istream, targetAutoTimerParams_fields, &timerParams);
-					ledOnTime = timerParams.targetOnTime;
-					ledOffTime = timerParams.targetOffTime;
+					autoTimerParams.ledOnTime = timerParams.targetOnTime;
+					autoTimerParams.ledOffTime = timerParams.targetOffTime;
+
+
+					TimerInit(&ScheduleOnTimer, OnScheduleOnTimerEvent);
+					TimerSetValue(&ScheduleOnTimer, autoTimerParams.ledOnTime); // Time in ms
+
+					TimerInit(&ScheduleOffTimer, OnScheduleOffTimerEvent);
+					TimerSetValue(&ScheduleOffTimer, autoTimerParams.ledOffTime); // Time in ms
 
 				}
 
-				if (configMode.controlPolicy == _controlPolicy_MANUAL) {
+				if (configMode.controlPolicy == ctrlPolicy_MANUAL) {
+
+					ledConfigMode = MANUAL;
 
 					targetManualControlParams manualParams = { };
 					status = decode_actuation_message_contents(&istream, targetAutoTimerParams_fields, &manualParams);
-					brightness = manualParams.targetBrightnessLevel;
+					manualControlParams.brightness = manualParams.targetBrightnessLevel;
 
+					if (manualControlParams.brightness >= 100)
+						brightness_ascii[0] = 'a';
 
+					else
+						brightness_ascii[0] = 48 + (manualControlParams.brightness / 10);
+
+					brightness_ascii[1] = '\n';
+					UartPutBuffer(&Uart1, brightness_ascii, 2);
+
+					HAL_Delay(100);
 
 				}
 
 			}
 
-			/* Now we are ready to decode the message. */
-			status = pb_decode(&istream, config_values_fields, &config);
-
-			if (config.led_brightness >= 100)
-				brightness[0] = 'a';
-
-			else
-				brightness[0] = 48 + (config.led_brightness / 10);
-
-			brightness[1] = '\n';
-			UartPutBuffer(&Uart1, brightness, 2);
-
-			HAL_Delay(100);
 			break;
 
 		case 2:
@@ -759,8 +867,7 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 	}
 
 	// Switch LED 2 ON for each received downlink
-	GpioWrite(&Led2, 1);
-	TimerStart(&ScheduleOnTimer);
+
 }
 
 /*!
@@ -823,15 +930,26 @@ int main(void) {
 	DeviceState = DEVICE_STATE_INIT;
 
 	//UartPutChar( &Uart1, 'l');
-	command[1] = '\n';
 
-	//getSensorValues();
-	command[0] = '0';
-	UartPutBuffer(&Uart1, command, 2);
+
+	command[0] = '1'; //Route to streetlight 1
+	command[1] = 'b';
+	command[2] = '0';
+	command[3] = '\n';
+
+
+	UartPutBuffer(&Uart1, command, 4);
+	HAL_Delay(100);
+
+
 	FifoFlush(&Uart1.FifoRx);
 	FifoFlush(&Uart1.FifoTx);
 
 	MEASURE_SENSORS = true;
+
+	TimerInit(&SlaveHeartBeatTimer, OnSlaveHeartBeatTimerEvent);
+	TimerSetValue(&SlaveHeartBeatTimer, heartBeatInterval);
+
 
 	while (1) {
 
@@ -845,11 +963,6 @@ int main(void) {
 
 			TimerInit(&TxNextPacketTimer, OnTxNextPacketTimerEvent);
 
-			TimerInit(&SlaveHeartBeatTimer, OnSlaveHeartBeatTimerEvent);
-			TimerSetValue(&SlaveHeartBeatTimer, 25);
-
-			TimerInit(&ScheduleOnTimer, OnScheduleOnTimerEvent);
-			TimerSetValue(&ScheduleOnTimer, 25);
 
 			mibReq.Type = MIB_ADR;
 			mibReq.Param.AdrEnable = LORAWAN_ADR_ON;

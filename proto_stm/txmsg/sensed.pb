@@ -1,11 +1,13 @@
 
-­
-sensed.proto"œ
+Á
+sensed.proto"°
 sensor_values
-dataSamplingInstant (
+dataSamplingInstant (
 caseTemperature (
 powerConsumption (
 	luxOutput (
 
 ambientLux (
-batteryLevel (
+batteryLevel (
+
+slaveAlive (

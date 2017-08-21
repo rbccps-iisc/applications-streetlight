@@ -11,7 +11,7 @@ syntax = "proto2";
 
 
 
-	enum _controlPolicy { //Config mode representation
+	enum ctrlPolicy { //Config mode representation
 		
 		AUTO_LUX = 0;
 		AUTO_TIMER = 1;
@@ -21,7 +21,7 @@ syntax = "proto2";
 
 	message targetControlPolicy{
 
-		required _controlPolicy controlPolicy = 2;
+		required ctrlPolicy controlPolicy = 2;
 		
 	}
 
@@ -34,8 +34,8 @@ syntax = "proto2";
 
 	message targetAutoTimerParams{
 
-		optional uint64 targetOnTime = 4;
-		optional uint64 targetOffTime = 5;
+		optional uint32 targetOnTime = 4;
+		optional uint32 targetOffTime = 5;
 	
 
 	}
@@ -51,10 +51,11 @@ syntax = "proto2";
 
 	message targetConfigurations{
 
-		required targetPowerStateParams  PowerState = 1;
-		required targetControlPolicy ControlPolicy = 2;
+		optional targetPowerStateParams  PowerState = 1;
+		optional targetControlPolicy ControlPolicy = 2;
 		optional targetAutoTimerParams AutoTimerParams = 3;
 		optional targetAutoLuxParams AutoLuxParams = 4;
+		optional targetManualControlParams ManualControlParams =5;
 	
 	}	
 
