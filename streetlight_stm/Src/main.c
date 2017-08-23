@@ -171,7 +171,7 @@ static TimerEvent_t ManualModeExpiryTimer;
 
 
 
-uint32_t oneDay = 8640000;
+uint32_t oneDay = 86400000;
 
 
 
@@ -1002,9 +1002,6 @@ int main(void) {
 	TimerStart(&SlaveHeartBeatTimer);
 
 
-	TimerInit(&SlaveHeartBeatTimer, OnSlaveHeartBeatTimerEvent);
-	TimerSetValue(&SlaveHeartBeatTimer, heartBeatParams.heartBeatInterval);
-	TimerStart(&SlaveHeartBeatTimer);
 
 	ledConfigMode = AUTO_LUX;
 
