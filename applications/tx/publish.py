@@ -5,7 +5,7 @@ import paho.mqtt.client as mqtt
 import json
 
 # Define Variables
-MQTT_HOST = "localhost"
+MQTT_HOST = "10.156.14.16"
 MQTT_PORT = 1883
 MQTT_KEEPALIVE_INTERVAL = 45
 MQTT_TOPIC = "application/2/node/70b3d58ff0031de5/tx"

@@ -588,7 +588,7 @@ static void OnScheduleOffTimerEvent(void) {
 
 	TimerStop(&ScheduleOffTimer);
 	TimerSetValue(&ScheduleOffTimer, oneDay); // Schedule next on for same time next day
-	TimerStart(&ScheduleOnTimer);
+	TimerStart(&ScheduleOffTimer);
 
 }
 
