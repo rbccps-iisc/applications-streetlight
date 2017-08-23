@@ -169,7 +169,6 @@ static TimerEvent_t ManualModeExpiryTimer;
 
 
 
-TimerTime_t timeAlive = 0;
 
 
 uint32_t oneDay = 8640000;
@@ -247,6 +246,8 @@ uint32_t led_lux;
 uint32_t power;
 uint32_t LuxOnThreshold;
 uint32_t LuxOffThreshold;
+TimerTime_t timeAlive;
+
 
 }SensorValues;
 SensorValues sensorValues;
@@ -387,9 +388,9 @@ uint8_t parseSensorString(){
 	sensorValues.temperature = (sensorValues.temperature * 5 * 100) / (1024 * 4.3);
 	sensorValues.power = sensorValues.current * 5 / 1024 * (3.9 + 1.5) / 1.5 * sensorValues.voltage * 5 / 1024 / 16 * 10;
 
-	timeAlive = TimerGetCurrentTime();
+	sensorValues.timeAlive = TimerGetCurrentTime();
 
-	sensor_values sensed = { timeAlive, true, sensorValues.temperature, true, sensorValues.power, true, sensorValues.led_lux,
+	sensor_values sensed = { sensorValues.timeAlive, true, sensorValues.temperature, true, sensorValues.power, true, sensorValues.led_lux,
 				true, sensorValues.ambient_lux, true, vdd , true, sensorValues.slaveReachable};
 
 	pb_ostream_t stream = pb_ostream_from_buffer(tx_msg, sizeof(tx_msg));
@@ -407,7 +408,7 @@ uint8_t parseADCLuxToLedBrightness(uint32_t lux){
 	uint8_t brightnessChar = 0;
 
 
-	brightnessChar = (uint8_t)0.0166 * lux + 11.66;
+	brightnessChar = (uint8_t) ((0.0166 * lux) - 0.166);
 	if(brightnessChar >= 10)brightnessChar = 'a';
 	else brightnessChar += 48 ;
 
@@ -595,6 +596,7 @@ static void OnScheduleOffTimerEvent(void) {
 static void OnManualModeExpiry(void) {
 
 
+	ledConfigMode = AUTO_LUX;
 
 	TimerStop(&ManualModeExpiryTimer);
 
@@ -992,7 +994,7 @@ int main(void) {
 	MEASURE_SENSORS = true;
 
 
-	heartBeatParams.heartBeatInterval = 900000;
+	heartBeatParams.heartBeatInterval = 60000;
 
 
 	TimerInit(&SlaveHeartBeatTimer, OnSlaveHeartBeatTimerEvent);
