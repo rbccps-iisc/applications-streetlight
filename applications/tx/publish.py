@@ -13,9 +13,11 @@ MQTT_TOPIC = "application/2/node/70b3d58ff0031de5/tx"
 
 configuration = actuated_pb2.targetConfigurations()
 
-configuration.ManualControlParams.targetBrightnessLevel = int(raw_input('Enter Led Brightness     '))
 
+#configuration.ManualControlParams.targetBrightnessLevel = int(raw_input('Enter Led Brightness     '))
 
+configuration.AutoTimerParams.targetOnTime = int(raw_input('Enter minutes  from now to turn on'))*60*1000
+configuration.AutoTimerParams.targetOffTime = int(raw_input('Enter minutes from now to turn off'))*60*1000
 
 
 data = {}
