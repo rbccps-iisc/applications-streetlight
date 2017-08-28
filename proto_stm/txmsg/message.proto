@@ -1,8 +1,0 @@
-message sensor_values {
-	required int32 ambient_lux = 1;
-	required int32 led_lux = 2;
-	required int32 power = 3;
-	required int32 temperature = 4;
-	required int32 batteryLevel = 5;
-}
-
