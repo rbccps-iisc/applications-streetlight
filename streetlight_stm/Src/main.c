@@ -562,12 +562,11 @@ static void OnSlaveHeartBeatTimerEvent(void) {
 
 
 
-	heartBeatParams.sendHeartPulse = true;
-
-
-
+ 	heartBeatParams.sendHeartPulse = true;
 	TimerStop(&SlaveHeartBeatTimer);
 	TimerStart(&SlaveHeartBeatTimer);
+
+
 }
 
 static void OnScheduleOnTimerEvent(void) {
@@ -726,12 +725,11 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 					autoTimerParams.ledOffTime = timerParams.targetOffTime;
 
 
-					TimerInit(&ScheduleOnTimer, OnScheduleOnTimerEvent);
+
 					TimerSetValue(&ScheduleOnTimer, autoTimerParams.ledOnTime); // Time in ms
 					TimerStart(&ScheduleOnTimer);
 
 
-					TimerInit(&ScheduleOffTimer, OnScheduleOffTimerEvent);
 					TimerSetValue(&ScheduleOffTimer, autoTimerParams.ledOffTime); // Time in ms
 					TimerStart(&ScheduleOffTimer);
 				}
@@ -757,9 +755,8 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 					UartPutBuffer(&Uart1, command, 4);
 					HAL_Delay(100);
 
-					manualControlParams.manualControlExpiry = oneDay/24/60;
+					manualControlParams.manualControlExpiry = oneDay/2;
 
-					TimerInit(&ManualModeExpiryTimer, OnManualModeExpiry);
 					TimerSetValue(&ManualModeExpiryTimer, manualControlParams.manualControlExpiry);
 					TimerStart(&ManualModeExpiryTimer);
 
@@ -995,6 +992,14 @@ int main(void) {
 
 
 	heartBeatParams.heartBeatInterval = 60000;
+
+
+
+	TimerInit(&ScheduleOnTimer, OnScheduleOnTimerEvent);
+	TimerInit(&ScheduleOffTimer, OnScheduleOffTimerEvent);
+
+	TimerInit(&ManualModeExpiryTimer, OnManualModeExpiry);
+
 
 
 	TimerInit(&SlaveHeartBeatTimer, OnSlaveHeartBeatTimerEvent);

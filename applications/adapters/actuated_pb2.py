@@ -19,9 +19,9 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='actuated.proto',
   package='',
-  syntax='proto2',
   serialized_pb=_b('\n\x0e\x61\x63tuated.proto\"2\n\x16targetPowerStateParams\x12\x18\n\x10targetPowerState\x18\x01 \x02(\x08\"9\n\x13targetControlPolicy\x12\"\n\rcontrolPolicy\x18\x01 \x02(\x0e\x32\x0b.ctrlPolicy\":\n\x19targetManualControlParams\x12\x1d\n\x15targetBrightnessLevel\x18\x01 \x01(\r\"D\n\x15targetAutoTimerParams\x12\x14\n\x0ctargetOnTime\x18\x01 \x01(\r\x12\x15\n\rtargetOffTime\x18\x02 \x01(\r\"@\n\x13targetAutoLuxParams\x12\x13\n\x0btargetOnLux\x18\x01 \x01(\r\x12\x14\n\x0ctargetOffLux\x18\x02 \x01(\r\"\x87\x02\n\x14targetConfigurations\x12+\n\nPowerState\x18\x01 \x01(\x0b\x32\x17.targetPowerStateParams\x12+\n\rControlPolicy\x18\x02 \x01(\x0b\x32\x14.targetControlPolicy\x12/\n\x0f\x41utoTimerParams\x18\x03 \x01(\x0b\x32\x16.targetAutoTimerParams\x12+\n\rAutoLuxParams\x18\x04 \x01(\x0b\x32\x14.targetAutoLuxParams\x12\x37\n\x13ManualControlParams\x18\x05 \x01(\x0b\x32\x1a.targetManualControlParams*6\n\nctrlPolicy\x12\x0c\n\x08\x41UTO_LUX\x10\x00\x12\x0e\n\nAUTO_TIMER\x10\x01\x12\n\n\x06MANUAL\x10\x02')
 )
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 _CTRLPOLICY = _descriptor.EnumDescriptor(
   name='ctrlPolicy',
@@ -78,7 +78,6 @@ _TARGETPOWERSTATEPARAMS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -109,7 +108,6 @@ _TARGETCONTROLPOLICY = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -140,7 +138,6 @@ _TARGETMANUALCONTROLPARAMS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -178,7 +175,6 @@ _TARGETAUTOTIMERPARAMS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -216,7 +212,6 @@ _TARGETAUTOLUXPARAMS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -275,7 +270,6 @@ _TARGETCONFIGURATIONS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -296,7 +290,6 @@ DESCRIPTOR.message_types_by_name['targetAutoTimerParams'] = _TARGETAUTOTIMERPARA
 DESCRIPTOR.message_types_by_name['targetAutoLuxParams'] = _TARGETAUTOLUXPARAMS
 DESCRIPTOR.message_types_by_name['targetConfigurations'] = _TARGETCONFIGURATIONS
 DESCRIPTOR.enum_types_by_name['ctrlPolicy'] = _CTRLPOLICY
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 targetPowerStateParams = _reflection.GeneratedProtocolMessageType('targetPowerStateParams', (_message.Message,), dict(
   DESCRIPTOR = _TARGETPOWERSTATEPARAMS,

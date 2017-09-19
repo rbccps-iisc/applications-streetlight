@@ -8,7 +8,7 @@ import json
 MQTT_HOST = "10.156.14.16"
 MQTT_PORT = 1883
 MQTT_KEEPALIVE_INTERVAL = 45
-MQTT_TOPIC = "application/2/node/70b3d58ff0031d5a/tx"
+MQTT_TOPIC = "application/2/node/70b3d58ff0031de5/tx"
 
 
 configuration = actuated_pb2.targetConfigurations()
