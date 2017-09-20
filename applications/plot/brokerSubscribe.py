@@ -5,20 +5,14 @@ import paho.mqtt.client as mqtt
 import sys
 import json
 import requests
-import base64
 import time
-
-import rxmsg_pb2
-
-
 from influxdb import InfluxDBClient
 
 
 
-influxClient = InfluxDBClient('localhost', 8086, 'root', 'root', 'streetlight')
 
 
-rxmsg = rxmsg_pb2.sensor_values()
+influxClient = InfluxDBClient('127.0.0.1', 8086, 'root', 'root', 'streetlight')
 
 
 
@@ -28,33 +22,21 @@ def on_connect(client, userdata, flags, rc):
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
-    client.subscribe("application/2/node/70b3d58ff0031de5/rx")
+    client.subscribe("70b3d58ff0031de5")
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
 
-    decodedData = str(base64.b64decode(json.loads(str(msg.payload))["data"]))
-    rxmsg.ParseFromString(decodedData)
-    print ''
-    print 'Temperature ' + str(rxmsg.caseTemperature)
-    print 'Time ' + str(rxmsg.dataSamplingInstant)
-    print 'Lux out ' + str(rxmsg.luxOutput)
-    print 'power ' + str(rxmsg.powerConsumption)
-    print 'Ambient ' + str(rxmsg.ambientLux)
-    print 'Slave Alive ' + str(rxmsg.slaveAlive)
-    print 'Battery '  + str(rxmsg.batteryLevel)
-    print ''
+    print msg.payload
+    epochTime = int(time.time()) * 1000000000
 
+    decodedData = json.loads(msg.payload)["data"]
     series = []
-
-
-    timestamp = int(time.time() * 1000000000)
-
     pointValues = {
-        "time": timestamp,
+        "time": epochTime,
         "measurement": "caseTemperature",
         'fields': {
-            'value': rxmsg.caseTemperature,
+            'value': decodedData["caseTemperature"],
         },
         'tags': {
             "sensorName": "caseTemperature",
@@ -66,10 +48,10 @@ def on_message(client, userdata, msg):
 
 
     pointValues = {
-        "time": timestamp,
+        "time": epochTime,
         "measurement": "powerConsumption",
         'fields': {
-            'value': rxmsg.powerConsumption,
+            'value': decodedData["powerConsumption"],
         },
         'tags': {
             "sensorName": "powerConsumption",
@@ -81,10 +63,10 @@ def on_message(client, userdata, msg):
 
 
     pointValues = {
-        "time": timestamp,
+        "time": epochTime,
         "measurement": "luxOutput",
         'fields': {
-            'value': rxmsg.luxOutput,
+            'value': decodedData["luxOutput"],
         },
         'tags': {
             "sensorName": "luxOutput",
@@ -94,9 +76,10 @@ def on_message(client, userdata, msg):
 
     print series
 
-
+    
     influxClient.write_points(series, time_precision='n')
 
+    
 
 
 
@@ -105,15 +88,16 @@ def on_message(client, userdata, msg):
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
-client.username_pw_set("loraserver","password")
+client.username_pw_set("admin","admin@123")
 
-client.connect("10.156.14.16", 1883, 60)
+client.connect("10.156.14.6", 2333, 60)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
 # Other loop*() functions are available that give a threaded interface and a
 # manual interface.
 client.loop_forever()
+
 
 
 

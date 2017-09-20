@@ -1,17 +1,12 @@
 import base64
-import actuated_pb2
-
 import paho.mqtt.client as mqtt
 import json
 
 # Define Variables
-MQTT_HOST = "10.156.14.16"
-MQTT_PORT = 1883
-MQTT_KEEPALIVE_INTERVAL = 45
-MQTT_TOPIC = "application/2/node/70b3d58ff0031de5/tx"
-
-
-configuration = actuated_pb2.targetConfigurations()
+MQTT_HOST = "10.156.14.6"
+MQTT_PORT = 2333
+MQTT_KEEPALIVE_INTERVAL = 60
+MQTT_TOPIC = "70b3d58ff0031de5_update"
 
 
 print("1. Manual Control")
@@ -20,29 +15,30 @@ print("3. Auto Timer")
 
 mode = int(raw_input())
 
+command = {}
+
+
 if ( mode == 1):
-	configuration.ManualControlParams.targetBrightnessLevel = int(raw_input('Enter Led Brightness     '))
+    command["ManualControlParams"] = {}
+    command["ManualControlParams"]["targetBrightnessLevel"] = int(raw_input('Enter Led Brightness     '))
 
 if ( mode == 2):
-	configuration.AutoLuxParams.targetOnLux =  100
-	configuration.AutoLuxParams.targetOffLux = 700
+    command["AutoLuxParams"] = {}
+    command["AutoLuxParams"]["targetOnLux"] =  int(raw_input('Enter the On threshold'))
+    command["AutoLuxParams"]["targetOffLux"] =  int(raw_input('Enter the Off threshold'))
 
 if ( mode == 3):
-	configuration.AutoTimerParams.targetOnTime = int(raw_input('Enter minutes  from now to turn on'))*60*1000
-	configuration.AutoTimerParams.targetOffTime = int(raw_input('Enter minutes from now to turn off'))*60*1000
+    command["AutoTimerParams"] = {}
+    command["AutoTimerParams"]["targetOnTime"] = int(raw_input('Enter minutes  from now to turn on'))*60*1000
+    command["AutoTimerParams"]["targetOffTime"] = int(raw_input('Enter minutes from now to turn off'))*60*1000
 
 
-data = {}
-data['reference'] = 'a'
-data['confirmed'] = False
-data['fport'] = 1
-data['data'] = base64.b64encode(configuration.SerializeToString())
 
-MQTT_MSG = json.dumps(data)
+MQTT_MSG = json.dumps(command)
 
 
-MQTT_USERNAME = "loraserver"
-MQTT_PASSWORD = "password"
+MQTT_USERNAME = "admin"
+MQTT_PASSWORD = "admin@123"
 
 # Define on_publish event function
 def on_publish(client, userdata, mid):

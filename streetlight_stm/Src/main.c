@@ -354,6 +354,20 @@ bool decode_actuation_message_contents(pb_istream_t *stream,const pb_field_t fie
 
 
 
+void deletePreviousState(){
+
+	if(ledConfigMode == AUTO_TIMER){
+
+		TimerStop(&ScheduleOnTimer);
+		TimerStop(&ScheduleOffTimer);
+	}
+
+	if(ledConfigMode == MANUAL){
+
+		TimerStop(&ManualModeExpiryTimer);
+	}
+
+}
 
 
 
@@ -571,8 +585,8 @@ static void OnSlaveHeartBeatTimerEvent(void) {
 
 static void OnScheduleOnTimerEvent(void) {
 
-
-	autoTimerParams.turnOnLed = true;
+	if(ledConfigMode == AUTO_TIMER)
+		autoTimerParams.turnOnLed = true;
 
 	TimerStop(&ScheduleOnTimer);
 	TimerSetValue(&ScheduleOnTimer, oneDay); // Schedule next on for same time next day
@@ -582,8 +596,8 @@ static void OnScheduleOnTimerEvent(void) {
 
 static void OnScheduleOffTimerEvent(void) {
 
-
-	autoTimerParams.turnOffLed = true;
+	if(ledConfigMode == AUTO_TIMER)
+		autoTimerParams.turnOffLed = true;
 
 	TimerStop(&ScheduleOffTimer);
 	TimerSetValue(&ScheduleOffTimer, oneDay); // Schedule next on for same time next day
@@ -594,8 +608,8 @@ static void OnScheduleOffTimerEvent(void) {
 
 static void OnManualModeExpiry(void) {
 
-
-	ledConfigMode = AUTO_LUX;
+	if(ledConfigMode == MANUAL)
+		ledConfigMode = AUTO_LUX;
 
 	TimerStop(&ManualModeExpiryTimer);
 
@@ -696,6 +710,7 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 
 			if (type == targetPowerStateParams_fields) {
 
+				deletePreviousState();
 				targetPowerStateParams powerState = { };
 				status = decode_actuation_message_contents(&istream, targetPowerStateParams_fields, &powerState);
 				masterControl = powerState.targetPowerState;
@@ -705,6 +720,7 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 
 				if (type == targetAutoLuxParams_fields) {
 
+						deletePreviousState();
 						ledConfigMode = AUTO_LUX;
 						targetAutoLuxParams luxParams = { };
 						status = decode_actuation_message_contents(&istream, targetAutoLuxParams_fields, &luxParams);
@@ -718,6 +734,7 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 
 				if (type == targetAutoTimerParams_fields) {
 
+					deletePreviousState();
 					ledConfigMode = AUTO_TIMER;
 					targetAutoTimerParams timerParams = { };
 					status = decode_actuation_message_contents(&istream, targetAutoTimerParams_fields, &timerParams);
@@ -736,6 +753,7 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 
 				if (type == targetManualControlParams_fields) {
 
+					deletePreviousState();
 					ledConfigMode = MANUAL;
 
 					targetManualControlParams manualParams = { };
