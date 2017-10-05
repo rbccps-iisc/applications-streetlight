@@ -1,9 +1,17 @@
+/*	 Author : Lalit Shah
+  	 Date   : 28th August 2017
+
+*/
+
 
 /*
+Description:
+THis is the atmega driver for streetlight. For more information see the main documentation on the repository
 This file bifurcates the working state of device into 
 two states based on the working of  the established connection 
 between device and STM. 
 */
+
 #include<avr/interrupt.h>
 #include<avr/io.h>
 #include<avr/eeprom.h>

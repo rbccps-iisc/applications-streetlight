@@ -30,7 +30,7 @@ def on_message(client, userdata, msg):
     print msg.payload
     epochTime = int(time.time()) * 1000000000
 
-    decodedData = json.loads(msg.payload)["data"]
+    decodedData = json.loads(msg.payload)
     series = []
     pointValues = {
         "time": epochTime,

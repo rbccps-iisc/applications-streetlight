@@ -61,7 +61,7 @@
  *
  * \remark Please note that ETSI mandates duty cycled transmissions. Use only for test purposes
  */
-#define LORAWAN_DUTYCYCLE_ON                        false
+#define LORAWAN_DUTYCYCLE_ON                        true
 
 #define USE_SEMTECH_DEFAULT_CHANNEL_LINEUP          1
 
@@ -239,8 +239,8 @@ typedef struct _sensorValues{
 
 bool slaveReachable;
 uint32_t temperature;
-uint32_t current;
-uint32_t voltage;
+float current;
+float voltage;
 uint32_t ambient_lux;
 uint32_t led_lux;
 uint32_t power;
@@ -399,8 +399,9 @@ uint8_t parseSensorString(){
 	sensorValues.LuxOnThreshold = atoi(temp);
 	temp = strtok (NULL, ",");
 
+
 	sensorValues.temperature = (sensorValues.temperature * 5 * 100) / (1024 * 4.3);
-	sensorValues.power = sensorValues.current * 5 / 1024 * (3.9 + 1.5) / 1.5 * sensorValues.voltage * 5 / 1024 / 16 * 10;
+	sensorValues.power = sensorValues.current * 5.0 / 1024.0 * (3.9 + 1.5) / 1.5 * sensorValues.voltage * 5.0 / 1024.0 / 16.0 * 10.0;
 
 	sensorValues.timeAlive = TimerGetCurrentTime();
 
