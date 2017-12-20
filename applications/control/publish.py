@@ -3,10 +3,10 @@ import paho.mqtt.client as mqtt
 import json
 
 # Define Variables
-MQTT_HOST = "10.156.14.6"
-MQTT_PORT = 2333
+MQTT_HOST = "gateways.rbccps.org"
+MQTT_PORT = 1883
 MQTT_KEEPALIVE_INTERVAL = 60
-MQTT_TOPIC = "70b3d58ff0031de5_update"
+MQTT_TOPIC = "application/1/node/70b3d58ff0031f03/tx"
 
 
 print("1. Manual Control")
@@ -37,8 +37,8 @@ if ( mode == 3):
 MQTT_MSG = json.dumps(command)
 
 
-MQTT_USERNAME = "admin"
-MQTT_PASSWORD = "admin@123"
+MQTT_USERNAME = "loraserver"
+MQTT_PASSWORD = "loraserver"
 
 # Define on_publish event function
 def on_publish(client, userdata, mid):

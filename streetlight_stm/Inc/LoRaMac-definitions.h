@@ -433,7 +433,7 @@ Maintainer: Miguel Luis and Gregory Cristian
  * Second reception window channel definition.
  */
 // Channel = { Frequency [Hz], Datarate }
-#define RX_WND_2_CHANNEL                                  { 869525000, DR_3}
+#define RX_WND_2_CHANNEL                                  { 866550000, DR_2}
 
 /*!
  * LoRaMac maximum number of bands
@@ -454,7 +454,7 @@ typedef enum
 
 // Band = { DutyCycle, TxMaxPower, LastTxDoneTime, TimeOff }
 #define BAND0              { 100 , TX_POWER_14_DBM, 0,  0 } //  1.0 %
-#define BAND1              { 100 , TX_POWER_14_DBM, 0,  0 } //  1.0 %
+#define BAND1              { 100 , TX_POWER_20_DBM, 0,  0 } //  1.0 %
 #define BAND2              { 1000, TX_POWER_14_DBM, 0,  0 } //  0.1 %
 #define BAND3              { 10  , TX_POWER_14_DBM, 0,  0 } // 10.0 %
 #define BAND4              { 100 , TX_POWER_14_DBM, 0,  0 } //  1.0 %
@@ -463,9 +463,9 @@ typedef enum
  * LoRaMac default channels
  */
 // Channel = { Frequency [Hz], { ( ( DrMax << 4 ) | DrMin ) }, Band }
-#define LC1                { 868100000, { ( ( DR_5 << 4 ) | DR_0 ) }, 1 }
-#define LC2                { 868300000, { ( ( DR_5 << 4 ) | DR_0 ) }, 1 }
-#define LC3                { 868500000, { ( ( DR_5 << 4 ) | DR_0 ) }, 1 }
+#define LC1                { 865062500, { ( ( DR_5 << 4 ) | DR_0 ) }, 1 }
+#define LC2                { 865402500, { ( ( DR_5 << 4 ) | DR_0 ) }, 1 }
+#define LC3                { 865985000, { ( ( DR_5 << 4 ) | DR_0 ) }, 1 }
 
 /*!
  * LoRaMac channels which are allowed for the join procedure

@@ -43,7 +43,7 @@
 /*!
  * LoRaWAN confirmed messages
  */
-#define LORAWAN_CONFIRMED_MSG_ON                    false
+#define LORAWAN_CONFIRMED_MSG_ON                    true
 
 /*!
  * LoRaWAN Adaptive Data Rate
@@ -63,7 +63,7 @@
  */
 #define LORAWAN_DUTYCYCLE_ON                        true
 
-#define USE_SEMTECH_DEFAULT_CHANNEL_LINEUP          1
+#define USE_SEMTECH_DEFAULT_CHANNEL_LINEUP          0
 
 #if( USE_SEMTECH_DEFAULT_CHANNEL_LINEUP == 1 )
 
@@ -212,6 +212,7 @@ struct ComplianceTest_s
 
 uint8_t txBuffer[100];
 uint8_t rxBuffer[100];
+uint8_t protoBuffer[100];
 uint8_t rxData=0;
 uint8_t txData='x';
 uint8_t rec_msg[100];
@@ -294,10 +295,22 @@ typedef struct _manualParameters{
 	uint32_t manualControlExpiry;
 }ManualControlParameters;
 
+typedef struct _LiFiParameters{
+	bool sendLiFi;
+	char msg[4];
+}LiFiParameters;
+
+
+
+
+
+
 AutoLuxParameters autoLuxParams;
 AutoTimerParameters autoTimerParams;
 ManualControlParameters manualControlParams;
 HeartBeatParameters heartBeatParams;
+LiFiParameters liFiParams;
+
 
 bool MEASURE_SENSORS = true;
 
@@ -354,6 +367,7 @@ bool decode_actuation_message_contents(pb_istream_t *stream,const pb_field_t fie
 
 
 
+
 void deletePreviousState(){
 
 	if(ledConfigMode == AUTO_TIMER){
@@ -400,7 +414,8 @@ uint8_t parseSensorString(){
 	temp = strtok (NULL, ",");
 
 
-	sensorValues.temperature = (sensorValues.temperature * 5 * 100) / (1024 * 4.3);
+
+	sensorValues.temperature = (sensorValues.temperature * 5.0 * 100.0) / (1024.0 * 4.3);
 	sensorValues.power = sensorValues.current * 5.0 / 1024.0 * (3.9 + 1.5) / 1.5 * sensorValues.voltage * 5.0 / 1024.0 / 16.0 * 10.0;
 
 	sensorValues.timeAlive = TimerGetCurrentTime();
@@ -701,11 +716,11 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 		switch (mcpsIndication->Port) {
 		case 1:
 
-			memcpy(rxBuffer, mcpsIndication->Buffer,
+			memcpy(protoBuffer, mcpsIndication->Buffer,
 					mcpsIndication->BufferSize);
 
 			//status = pb_decode(&stream, sensor_values_fields, &tx_msg);
-			pb_istream_t istream = pb_istream_from_buffer(rxBuffer,
+			pb_istream_t istream = pb_istream_from_buffer(protoBuffer,
 					mcpsIndication->BufferSize);
 			const pb_field_t *type = decode_actuation_type(&istream);
 
@@ -779,6 +794,25 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 					TimerSetValue(&ManualModeExpiryTimer, manualControlParams.manualControlExpiry);
 					TimerStart(&ManualModeExpiryTimer);
 
+
+				}
+
+
+				if (type == targetLiFiParams_fields) {
+
+					targetLiFiParams liFi = { };
+					status = decode_actuation_message_contents(&istream, targetLiFiParams_fields, &liFi);
+					command[0] = '1';
+					command[1] = 'v';
+					if (status != 0){
+
+
+						memcpy(command+2, liFi.lifiMsg, 3);
+
+					}
+					command[5] = '\n';
+					UartPutBuffer(&Uart1, command, 4);
+					HAL_Delay(100);
 
 				}
 
@@ -972,7 +1006,7 @@ static void MlmeConfirm(MlmeConfirm_t *mlmeConfirm) {
 /**
  * Main application entry point.
  */
-int main(void) {
+	int main(void) {
 	LoRaMacPrimitives_t LoRaMacPrimitives;
 	LoRaMacCallback_t LoRaMacCallbacks;
 	MibRequestConfirm_t mibReq;
@@ -1027,7 +1061,7 @@ int main(void) {
 
 
 
-	ledConfigMode = AUTO_LUX;
+	ledConfigMode = MANUAL;
 
 
 	while (1) {

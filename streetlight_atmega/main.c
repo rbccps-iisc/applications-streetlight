@@ -424,5 +424,3 @@ void main(void)
 
 }
 
-AVRGCC2.c
-Displaying AVRGCC2.c.

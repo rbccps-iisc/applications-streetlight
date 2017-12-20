@@ -1,6 +1,4 @@
-
 syntax = "proto2";
-
 
 
 	message targetPowerStateParams{
@@ -47,6 +45,10 @@ syntax = "proto2";
 
 	}
 	
+	message targetLiFiParams{
+
+		optional string lifiMsg = 1;
+	}
 
 
 	message targetConfigurations{
@@ -55,8 +57,8 @@ syntax = "proto2";
 		optional targetControlPolicy ControlPolicy = 2;
 		optional targetAutoTimerParams AutoTimerParams = 3;
 		optional targetAutoLuxParams AutoLuxParams = 4;
-		optional targetManualControlParams ManualControlParams =5;
-	
+		optional targetManualControlParams ManualControlParams = 5;
+		optional targetLiFiParams LiFiParams = 6;
 	}	
 
 

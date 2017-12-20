@@ -8,5 +8,6 @@ message sensor_values {
 	optional int32 batteryLevel = 6;
 	optional bool  slaveAlive = 7;
 
+
 }
 
