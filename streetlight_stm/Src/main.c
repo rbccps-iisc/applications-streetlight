@@ -63,7 +63,7 @@
  */
 #define LORAWAN_DUTYCYCLE_ON                        true
 
-#define USE_SEMTECH_DEFAULT_CHANNEL_LINEUP          1
+#define USE_SEMTECH_DEFAULT_CHANNEL_LINEUP          0
 
 #if( USE_SEMTECH_DEFAULT_CHANNEL_LINEUP == 1 )
 
