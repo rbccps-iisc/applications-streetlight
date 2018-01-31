@@ -304,7 +304,7 @@ bool MEASURE_SENSORS = true;
 
 
 sensor_values sensed = sensor_values_init_zero;
-targetConfigurations config = targetConfigurations_init_zero;
+_targetConfigurations config = _targetConfigurations_init_zero;
 
 uint8_t status = 0,protoLen = 0;
 
@@ -324,7 +324,7 @@ const pb_field_t* decode_actuation_type(pb_istream_t *stream) {
 	while (pb_decode_tag(stream, &wire_type, &tag, &eof)) {
 		if (wire_type == PB_WT_STRING) {
 			const pb_field_t *field;
-			for (field = targetConfigurations_fields; field->tag != 0;
+			for (field = _targetConfigurations_fields; field->tag != 0;
 					field++) {
 				if (field->tag == tag && (field->type & PB_LTYPE_SUBMESSAGE)) {
 					/* Found our field. */
@@ -709,22 +709,22 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 					mcpsIndication->BufferSize);
 			const pb_field_t *type = decode_actuation_type(&istream);
 
-			if (type == targetPowerStateParams_fields) {
+			if (type == _targetPowerStateParams_fields) {
 
 				deletePreviousState();
-				targetPowerStateParams powerState = { };
-				status = decode_actuation_message_contents(&istream, targetPowerStateParams_fields, &powerState);
+				_targetPowerStateParams powerState = { };
+				status = decode_actuation_message_contents(&istream, _targetPowerStateParams_fields, &powerState);
 				masterControl = powerState.targetPowerState;
 
 			}
 
 
-				if (type == targetAutoLuxParams_fields) {
+				if (type == _targetAutoLuxParams_fields) {
 
 						deletePreviousState();
 						ledConfigMode = AUTO_LUX;
-						targetAutoLuxParams luxParams = { };
-						status = decode_actuation_message_contents(&istream, targetAutoLuxParams_fields, &luxParams);
+						_targetAutoLuxParams luxParams = { };
+						status = decode_actuation_message_contents(&istream, _targetAutoLuxParams_fields, &luxParams);
 						autoLuxParams.luxOn_threshold = luxParams.targetOnLux;
 						autoLuxParams.luxOff_threshold = luxParams.targetOffLux;
 
@@ -733,12 +733,12 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 
 
 
-				if (type == targetAutoTimerParams_fields) {
+				if (type == _targetAutoTimerParams_fields) {
 
 					deletePreviousState();
 					ledConfigMode = AUTO_TIMER;
-					targetAutoTimerParams timerParams = { };
-					status = decode_actuation_message_contents(&istream, targetAutoTimerParams_fields, &timerParams);
+					_targetAutoTimerParams timerParams = { };
+					status = decode_actuation_message_contents(&istream, _targetAutoTimerParams_fields, &timerParams);
 					autoTimerParams.ledOnTime = timerParams.targetOnTime;
 					autoTimerParams.ledOffTime = timerParams.targetOffTime;
 
@@ -752,13 +752,13 @@ static void McpsIndication(McpsIndication_t *mcpsIndication) {
 					TimerStart(&ScheduleOffTimer);
 				}
 
-				if (type == targetManualControlParams_fields) {
+				if (type == _targetManualControlParams_fields) {
 
 					deletePreviousState();
 					ledConfigMode = MANUAL;
 
-					targetManualControlParams manualParams = { };
-					status = decode_actuation_message_contents(&istream, targetManualControlParams_fields, &manualParams);
+					_targetManualControlParams manualParams = { };
+					status = decode_actuation_message_contents(&istream, _targetManualControlParams_fields, &manualParams);
 					manualControlParams.brightness = manualParams.targetBrightnessLevel;
 
 
@@ -1002,6 +1002,27 @@ int main(void) {
 
 	UartPutBuffer(&Uart1, command, 4);
 	HAL_Delay(100);
+
+
+	command[0] = '1'; //Route to streetlight 1
+	command[1] = 'b';
+	command[2] = '2';
+	command[3] = '\n';
+
+
+	UartPutBuffer(&Uart1, command, 4);
+	HAL_Delay(1000);
+
+	command[0] = '1'; //Route to streetlight 1
+	command[1] = 'b';
+	command[2] = '0';
+	command[3] = '\n';
+
+
+	UartPutBuffer(&Uart1, command, 4);
+	HAL_Delay(100);
+
+
 
 
 	FifoFlush(&Uart1.FifoRx);

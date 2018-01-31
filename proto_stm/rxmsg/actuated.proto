@@ -3,7 +3,7 @@ syntax = "proto2";
 
 
 
-	message targetPowerStateParams{
+	message _targetPowerStateParams{
 
 		required bool targetPowerState = 1;
 		
@@ -19,20 +19,20 @@ syntax = "proto2";
 
 	}
 
-	message targetControlPolicy{
+	message _targetControlPolicyParams{
 
-		required ctrlPolicy controlPolicy = 1;
+		required ctrlPolicy targetControlPolicy = 1;
 		
 	}
 
-	message targetManualControlParams{
+	message _targetManualControlParams{
 
 		optional uint32 targetBrightnessLevel = 1;
 	
 	}
 
 
-	message targetAutoTimerParams{
+	message _targetAutoTimerParams{
 
 		optional uint32 targetOnTime = 1;
 		optional uint32 targetOffTime = 2;
@@ -40,7 +40,7 @@ syntax = "proto2";
 
 	}
 	
-	message targetAutoLuxParams{
+	message _targetAutoLuxParams{
 
 		optional uint32 targetOnLux = 1;
 		optional uint32 targetOffLux = 2;
@@ -49,13 +49,13 @@ syntax = "proto2";
 	
 
 
-	message targetConfigurations{
+	message _targetConfigurations{
 
-		optional targetPowerStateParams  PowerState = 1;
-		optional targetControlPolicy ControlPolicy = 2;
-		optional targetAutoTimerParams AutoTimerParams = 3;
-		optional targetAutoLuxParams AutoLuxParams = 4;
-		optional targetManualControlParams ManualControlParams =5;
+		optional _targetPowerStateParams  targetPowerState = 1;
+		optional _targetControlPolicyParams targetControlPolicyParams = 2;
+		optional _targetAutoTimerParams targetAutoTimerParams = 3;
+		optional _targetAutoLuxParams targetAutoLuxParams = 4;
+		optional _targetManualControlParams targetManualControlParams =5;
 	
 	}	
 
