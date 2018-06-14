@@ -304,7 +304,7 @@ bool MEASURE_SENSORS = true;
 
 
 sensor_values sensed = sensor_values_init_zero;
-_targetConfigurations config = _targetConfigurations_init_zero;
+targetConfigurations config = targetConfigurations_init_zero;
 
 uint8_t status = 0,protoLen = 0;
 
@@ -324,7 +324,7 @@ const pb_field_t* decode_actuation_type(pb_istream_t *stream) {
 	while (pb_decode_tag(stream, &wire_type, &tag, &eof)) {
 		if (wire_type == PB_WT_STRING) {
 			const pb_field_t *field;
-			for (field = _targetConfigurations_fields; field->tag != 0;
+			for (field = targetConfigurations_fields; field->tag != 0;
 					field++) {
 				if (field->tag == tag && (field->type & PB_LTYPE_SUBMESSAGE)) {
 					/* Found our field. */

@@ -49,7 +49,7 @@ syntax = "proto2";
 	
 
 
-	message _targetConfigurations{
+	message targetConfigurations{
 
 		optional _targetPowerStateParams  targetPowerState = 1;
 		optional _targetControlPolicyParams targetControlPolicyParams = 2;
